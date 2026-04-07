@@ -20,7 +20,7 @@
         .hero-tagline { color: var(--silver); font-size: 0.75rem; font-weight: 300; letter-spacing: 2px; text-transform: uppercase; opacity: 0.8; }
 
         .section-inner { max-width: 480px; margin: 0 auto; padding: 20px; }
-        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(168, 85, 247, 0.15); padding: 25px; border-radius: 15px; margin-bottom: 20px; text-align: left; }
+        .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(168, 85, 247, 0.15); padding: 25px; border-radius: 15px; margin-bottom: 20px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .card h3 { font-family: var(--f-display); font-size: 0.8rem; color: var(--purple-glow); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; border-left: 3px solid var(--purple-glow); padding-left: 10px; }
         
         .service-item { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
@@ -32,18 +32,18 @@
         .form-group label { display: block; font-size: 0.7rem; color: var(--purple-glow); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
         .form-control { width: 100%; padding: 14px; background: rgba(0,0,0,0.4); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 8px; color: var(--white); font-family: inherit; font-size: 0.9rem; }
 
-        .btn { display: block; width: 100%; padding: 16px; background: var(--purple-mid); color: white; text-align: center; text-decoration: none; font-family: var(--f-display); font-size: 0.8rem; margin-top: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn { display: block; width: 100%; padding: 16px; background: var(--purple-mid); color: white; text-align: center; text-decoration: none; font-family: var(--f-display); font-size: 0.8rem; margin-top: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn-outline { background: transparent; border: 2px solid var(--purple-mid); color: var(--white); }
 
         .social-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .social-link { padding: 12px; border: 1px solid rgba(168, 85, 247, 0.15); text-align: center; text-decoration: none; color: var(--silver); font-family: var(--f-display); font-size: 0.65rem; border-radius: 6px; text-transform: uppercase; }
+        .social-link { padding: 12px; border: 1px solid rgba(168, 85, 247, 0.15); text-align: center; text-decoration: none; color: var(--silver); font-family: var(--f-display); font-size: 0.65rem; border-radius: 6px; text-transform: uppercase; transition: 0.2s; }
 
         .lang-toggle-wrapper { margin-top: 25px; text-align: center; }
         .lang-toggle-btn { padding: 12px 24px; background: var(--purple-mid); color: white; border: none; font-family: var(--f-display); font-size: 0.75rem; text-transform: uppercase; border-radius: 30px; cursor: pointer; font-weight: bold; box-shadow: 0 0 20px rgba(168, 85, 247, 0.4); }
 
         footer { padding: 40px 20px; font-size: 0.6rem; color: #555; font-family: var(--f-display); text-transform: uppercase; text-align: center; letter-spacing: 1px; }
 
-        /* Logic for language switching */
+        /* Η ΛΟΓΙΚΗ ΠΟΥ ΕΛΕΙΠΕ: Κρύψε το ένα ή το άλλο ανάλογα τη γλώσσα */
         [lang="en"] .lang-el { display: none !important; }
         [lang="el"] .lang-en { display: none !important; }
     </style>
@@ -148,8 +148,8 @@
 
             <div class="lang-toggle-wrapper">
                 <button class="lang-toggle-btn" onclick="toggleLang()">
-                    <span class="lang-el">ENGLISH / EN</span>
-                    <span class="lang-en">ΕΛΛΗΝΙΚΑ / GR</span>
+                    <span class="lang-el">SWITCH TO ENGLISH / EN</span>
+                    <span class="lang-en">ΑΛΛΑΓΗ ΣΕ ΕΛΛΗΝΙΚΑ / GR</span>
                 </button>
             </div>
         </div>
@@ -170,4 +170,4 @@
     </script>
 
 </body>
-  </html>
+</html>
