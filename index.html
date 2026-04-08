@@ -145,7 +145,6 @@
         }
         .service-neon:hover { transform: translateX(4px); }
 
-        /* Neon color per service */
         .svc-cyan { border-color: rgba(0, 245, 255, 0.35); box-shadow: 0 0 16px rgba(0, 245, 255, 0.12), inset 0 0 20px rgba(0, 245, 255, 0.04); }
         .svc-cyan:hover { box-shadow: 0 0 28px rgba(0, 245, 255, 0.35), inset 0 0 20px rgba(0, 245, 255, 0.08); }
         .svc-cyan .svc-icon { color: var(--neon-cyan); text-shadow: 0 0 12px var(--neon-cyan); }
@@ -176,9 +175,7 @@
         .svc-green h4 { color: var(--neon-green); text-shadow: 0 0 8px rgba(0,255,136,0.5); }
         .svc-green .svc-line { background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green); }
 
-        /* Line accent top-left */
         .svc-line { position: absolute; top: 0; left: 0; width: 40px; height: 2px; border-radius: 0 0 4px 0; }
-
         .svc-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
         .svc-icon { font-size: 1.1rem; flex-shrink: 0; }
         .service-neon h4 { font-family: var(--f-display); font-size: 0.8rem; font-weight: 700; margin: 0; }
@@ -206,18 +203,17 @@
         .lang-toggle-btn { padding: 14px 32px; background: transparent; border: 1px solid rgba(0, 245, 255, 0.4); color: var(--neon-cyan); font-family: var(--f-display); font-size: 0.7rem; text-transform: uppercase; border-radius: 30px; cursor: pointer; font-weight: bold; letter-spacing: 1.5px; text-shadow: 0 0 10px var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 245, 255, 0.15), inset 0 0 20px rgba(0, 245, 255, 0.03); transition: all 0.3s; }
         .lang-toggle-btn:hover { background: rgba(0, 245, 255, 0.1); box-shadow: 0 0 35px rgba(0, 245, 255, 0.35); }
 
-        /* ─── DIVIDER ─── */
         .neon-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent); margin: 4px 0 20px; opacity: 0.3; }
 
         /* ─── FOOTER ─── */
         footer { padding: 40px 20px; font-size: 0.55rem; color: #444; font-family: var(--f-display); text-transform: uppercase; text-align: center; letter-spacing: 2px; border-top: 1px solid rgba(0, 245, 255, 0.06); }
 
         /* ─── LANG LOGIC ─── */
-        [lang="en"] .lang-el { display: none !important; }
-        [lang="el"] .lang-en { display: none !important; }
+        html[lang="en"] .lang-el { display: none !important; }
+        html[lang="el"] .lang-en { display: none !important; }
     </style>
 </head>
-<body lang="el">
+<body class="lang-container">
 
     <nav>
         <div class="nav-mk">MK<span>.</span></div>
@@ -229,7 +225,7 @@
 
     <section id="hero">
         <div class="hero-orb">
-            <img src="./1305.png" onerror="this.src='./1305.jpg'" alt="Michail" class="hero-logo-main">
+            <img src="./1305.png" alt="Michail" class="hero-logo-main">
         </div>
         <h1 class="hero-name">Michail <br><span>Konstantopoulos</span></h1>
         <p class="hero-tagline">
@@ -354,4 +350,5 @@
 
             <div class="lang-toggle-wrapper">
                 <button class="lang-toggle-btn" onclick="toggleLang()">
-  
+                    <span class="lang-el">SWITCH TO ENGLISH / EN</span>
+                    <span class="lang-en">ΑΛ
