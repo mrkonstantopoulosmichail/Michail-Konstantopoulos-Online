@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MK // DIGITAL ARCHITECT // v2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #050905;
+            --bg2:       #0a120a;
+            --green:     #33FF00;
+            --green-dim: #1a7a00;
+            --green-dk:  #0d2a0d;
+            --amber:     #FFB000;
+            --cyan:      #00F5FF;
+            --red:       #FF4444;
+            --purple:    #bf55ff;
+            --white:     #e8ffe8;
+            --f-term:    'VT323', monospace;
+            --f-hud:     'Orbitron', sans-serif;
+            --f-mono:    'Share Tech Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--green);
+            font-family: var(--f-term);
+            overflow-x: hidden;
+            cursor: none;
+            animation: crt-flicker 10s infinite;
+        }
+        @keyframes crt-flicker {
+            0%,100% { opacity:1; }
+            96%   { opacity:1; }
+            96.3% { opacity:.92; }
+            96.6% { opacity:1; }
+            97.2% { opacity:.88; }
+            97.5% { opacity:1; }
+        }
+
+        /* ── SCROLLBAR ── */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--green-dim); }
+
+        /* ── CURSOR ── */
+        #mk-cursor {
+            position: fixed; width:14px; height:14px;
+            background: var(--green);
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+            pointer-events: none; z-index:99999;
+            mix-blend-mode: screen;
+            transition: background .15s, transform .1s;
+        }
+        #mk-cursor-ring {
+            position: fixed; width:28px; height:28px;
+            border: 1px solid rgba(51,255,0,.4);
+            pointer-events: none; z-index:99998;
+            transition: all .2s ease;
+        }
+        @media(hover:none){ body{cursor:auto} #mk-cursor,#mk-cursor-ring{display:none} }
+
+        /* ── CANVAS BG ── */
+        #bg-canvas {
+            position:fixed; inset:0; z-index:0;
+            opacity:.12; pointer-events:none;
+        }
+
+        /* ── CRT LAYERS ── */
+        .crt-scanlines {
+            position:fixed; inset:0; pointer-events:none; z-index:9990;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent, transparent 2px,
+                rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px
+            );
+        }
+        .crt-vignette {
+            position:fixed; inset:0; pointer-events:none; z-index:9991;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.75) 100%);
+        }
+        .crt-sweep {
+            position:fixed; top:-6px; left:0; width:100%; height:5px;
+            background: linear-gradient(180deg, transparent, rgba(51,255,0,.07), transparent);
+            pointer-events:none; z-index:9992;
+            animation: sweep 9s linear infinite;
+        }
+        @keyframes sweep { from{top:-6px} to{top:100vh} }
+
+        /* ── BOOT OVERLAY ── */
+        #boot-overlay {
+            position:fixed; inset:0; background:var(--bg); z-index:99997;
+            display:flex; flex-direction:column; justify-content:center; padding:32px;
+            transition: opacity .8s ease;
+        }
+        #boot-overlay.out { opacity:0; pointer-events:none; }
+        .boot-line {
+            font-family: var(--f-mono); font-size:.78rem;
+            color:var(--green); margin-bottom:3px;
+            opacity:0; white-space:nowrap; overflow:hidden;
+        }
+        .boot-line.vis { opacity:1; }
+        .boot-line.c-amber { color:var(--amber); }
+        .boot-line.c-cyan  { color:var(--cyan); }
+        .boot-line.c-dim   { color:var(--green-dim); }
+        .boot-progress-wrap {
+            margin-top:18px; width:min(280px,80%);
+            border:1px solid var(--green-dim); height:6px; overflow:hidden; position:relative;
+        }
+        .boot-bar {
+            height:100%; background:var(--green); width:0;
+            transition:width 2.2s ease;
+            box-shadow: 0 0 8px var(--green);
+        }
+        .boot-bar::after {
+            content:''; position:absolute; right:0; top:0;
+            width:4px; height:100%; background:#fff;
+            animation: blink .45s infinite;
+        }
+        .boot-pct {
+            font-family:var(--f-mono); font-size:.65rem;
+            color:var(--amber); margin-top:6px;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position:fixed; top:0; width:100%; z-index:1000;
+            background:rgba(5,9,5,.97); border-bottom:1px solid rgba(51,255,0,.18);
+            display:flex; align-items:stretch; height:48px;
+        }
+        .nav-seg {
+            padding:0 14px; border-right:1px solid rgba(51,255,0,.1);
+            display:flex; align-items:center; gap:8px; flex-shrink:0;
+        }
+        .nav-logo {
+            font-family:var(--f-hud); font-weight:900; font-size:.95rem;
+            color:var(--green); text-shadow:0 0 12px var(--green); letter-spacing:3px;
+        }
+        .nav-logo span { color:var(--amber); }
+        .nav-dot {
+            width:7px; height:7px; border-radius:50%;
+            background:var(--green); box-shadow:0 0 6px var(--green);
+            animation:blink 1.2s infinite;
+        }
+        .nav-status-txt { font-family:var(--f-mono); font-size:.58rem; color:var(--green-dim); }
+        .nav-clock { font-family:var(--f-mono); font-size:.68rem; color:var(--amber); letter-spacing:1px; }
+        .nav-right { margin-left:auto; display:flex; align-items:center; padding:0 14px; }
+        .lang-pill {
+            background:transparent; border:1px solid rgba(51,255,0,.3);
+            color:var(--green); font-family:var(--f-hud); font-size:.55rem;
+            font-weight:700; letter-spacing:2px; padding:5px 12px;
+            cursor:none; transition:all .25s;
+        }
+        .lang-pill:hover { background:var(--green); color:var(--bg); box-shadow:0 0 14px var(--green); }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        /* ── PAGE WRAP ── */
+        .page { position:relative; z-index:10; padding-top:48px; }
+
+        /* ── HERO ── */
+        #hero {
+            padding:48px 20px 36px; text-align:center;
+            display:flex; flex-direction:column; align-items:center;
+            position:relative;
+        }
+        /* corner brackets */
+        #hero::before, #hero::after {
+            content:''; position:absolute; width:32px; height:32px;
+        }
+        #hero::before { top:16px; left:16px; border-top:2px solid var(--amber); border-left:2px solid var(--amber); }
+        #hero::after  { top:16px; right:16px; border-top:2px solid var(--amber); border-right:2px solid var(--amber); }
+
+        /* photo */
+        .hero-photo-wrap { position:relative; width:160px; height:160px; margin-bottom:20px; }
+        .orbit-ring {
+            position:absolute; inset:-14px; border:1px solid rgba(51,255,0,.25);
+            animation:spin-slow 12s linear infinite;
+        }
+        .orbit-ring::before, .orbit-ring::after {
+            content:''; position:absolute; width:8px; height:8px;
+            background:var(--green); box-shadow:0 0 8px var(--green);
+        }
+        .orbit-ring::before { top:-4px; left:50%; transform:translateX(-50%); }
+        .orbit-ring::after  { bottom:-4px; left:50%; transform:translateX(-50%); }
+        @keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+        .orbit-ring2 {
+            position:absolute; inset:-26px; border:1px solid rgba(255,176,0,.12);
+            animation:spin-slow 20s linear infinite reverse;
+        }
+
+        .hero-photo {
+            width:160px; height:160px; object-fit:cover;
+            border:2px solid var(--green);
+            box-shadow:0 0 24px rgba(51,255,0,.3), inset 0 0 16px rgba(51,255,0,.06);
+            filter: saturate(.2) brightness(1.25) sepia(.15) hue-rotate(75deg);
+            display:block; position:relative;
+        }
+        /* pixel scanlines on photo */
+        .photo-overlay {
+            position:absolute; inset:0; pointer-events:none;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.12) 3px, rgba(0,0,0,.12) 4px);
+        }
+
+        /* glitch on hover */
+        .hero-photo-wrap:hover .hero-photo {
+            animation: photo-glitch .4s steps(3) infinite;
+        }
+        @keyframes photo-glitch {
+            0%   { clip-path:polygon(0 10%, 100% 10%, 100% 35%, 0 35%); transform:translateX(4px); }
+            33%  { clip-path:polygon(0 55%, 100% 55%, 100% 80%, 0 80%); transform:translateX(-4px); filter:saturate(1) hue-rotate(90deg); }
+            66%  { clip-path:polygon(0 30%, 100% 30%, 100% 50%, 0 50%); transform:translateX(2px); }
+            100% { clip-path:none; transform:none; filter:saturate(.2) brightness(1.25) sepia(.15) hue-rotate(75deg); }
+        }
+
+        /* hero text */
+        .hero-id { font-family:var(--f-mono); font-size:.58rem; color:var(--amber); letter-spacing:3px; margin-bottom:10px; }
+        .hero-name {
+            font-family:var(--f-hud); font-weight:900;
+            font-size:clamp(1.5rem,6.5vw,2.6rem);
+            text-transform:uppercase; line-height:1.15;
+            color:var(--green); letter-spacing:2px;
+            text-shadow:0 0 18px rgba(51,255,0,.45), 0 0 40px rgba(51,255,0,.15);
+            position:relative;
+        }
+        .glitch {
+            position:relative; display:inline-block;
+        }
+        .glitch::before, .glitch::after {
+            content:attr(data-g); position:absolute; top:0; left:0;
+            opacity:0; pointer-events:none;
+        }
+        .glitch::before { color:var(--cyan);   animation:g1 5s infinite; }
+        .glitch::after  { color:var(--amber);  animation:g2 5s infinite; }
+        @keyframes g1 {
+            0%,88%,100%{opacity:0}
+            89%{opacity:.85;transform:translateX(-3px) skewX(-6deg);clip-path:polygon(0 15%,100% 15%,100% 40%,0 40%)}
+            91%{opacity:0}
+            94%{opacity:.85;transform:translateX(3px);clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%)}
+            96%{opacity:0}
+        }
+        @keyframes g2 {
+            0%,85%,100%{opacity:0}
+            86%{opacity:.85;transform:translateX(4px) skewX(4deg);clip-path:polygon(0 45%,100% 45%,100% 65%,0 65%)}
+            88%{opacity:0}
+            92%{opacity:.85;transform:translateX(-3px);clip-path:polygon(0 5%,100% 5%,100% 25%,0 25%)}
+            94%{opacity:0}
+        }
+
+        .hero-tagline {
+            margin-top:12px; font-family:var(--f-mono); font-size:.75rem;
+            color:var(--amber); letter-spacing:2px;
+        }
+        .hero-tagline::before { content:'> '; color:var(--green-dim); }
+        .blink-cur {
+            display:inline-block; width:7px; height:.9em;
+            background:var(--amber); vertical-align:text-bottom;
+            animation:blink .8s infinite;
+        }
+
+        /* stats bar */
+        .hero-stats {
+            display:flex; gap:0; margin-top:22px;
+            border:1px solid rgba(51,255,0,.2);
+            font-family:var(--f-mono);
+        }
+        .stat-cell {
+            flex:1; text-align:center; padding:10px 14px;
+            border-right:1px solid rgba(51,255,0,.15);
+        }
+        .stat-cell:last-child { border-right:none; }
+        .stat-val {
+            display:block; font-family:var(--f-term); font-size:1.8rem; line-height:1;
+            color:var(--green); text-shadow:0 0 12px var(--green);
+        }
+        .stat-label { font-size:.5rem; color:var(--green-dim); letter-spacing:2px; }
+
+        /* ── SECTION INNER ── */
+        .section-inner { max-width:500px; margin:0 auto; padding:8px 16px 36px; }
+
+        /* ── TERMINAL WINDOW ── */
+        .term-win {
+            background:rgba(5,18,5,.85); border:1px solid rgba(51,255,0,.22);
+            margin-bottom:22px; position:relative; overflow:hidden;
+        }
+        /* grid lines inside */
+        .term-win::before {
+            content:''; position:absolute; inset:0; pointer-events:none;
+            background:
+                linear-gradient(0deg, rgba(51,255,0,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(51,255,0,.025) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        /* corner accents */
+        .term-win::after {
+            content:''; position:absolute; inset:0; pointer-events:none;
+            border:1px solid transparent;
+            box-shadow:
+                inset  6px  6px 0 rgba(255,176,0,.25),
+                inset -6px  6px 0 rgba(255,176,0,.25),
+                inset  6px -6px 0 rgba(255,176,0,.25),
+                inset -6px -6px 0 rgba(255,176,0,.25);
+        }
+
+        /* title bar */
+        .term-bar {
+            background:rgba(51,255,0,.08); border-bottom:1px solid rgba(51,255,0,.18);
+            padding:7px 12px; display:flex; align-items:center; gap:7px;
+            font-family:var(--f-mono); font-size:.6rem; position:relative; z-index:1;
+        }
+        .tb { width:9px; height:9px; cursor:none; transition:all .2s; }
+        .tb:hover { transform:scale(1.4); filter:brightness(1.5); }
+        .tb-x { background:#FF4444; box-shadow:0 0 4px #FF4444; }
+        .tb-m { background:var(--amber); box-shadow:0 0 4px var(--amber); }
+        .tb-f { background:var(--green); box-shadow:0 0 4px var(--green); }
+        .term-title-text {
+            color:var(--green); letter-spacing:1px; text-transform:uppercase; font-size:.6rem;
+        }
+        .term-title-text em { color:var(--amber); font-style:normal; }
+        .term-bar-dot {
+            margin-left:auto; width:6px; height:6px;
+            background:var(--green); animation:blink 1.6s infinite;
+            box-shadow:0 0 5px var(--green);
+        }
+
+        .term-body { padding:16px; position:relative; z-index:1; }
+
+        /* ── SERVICE ROWS ── */
+        .svc-row {
+            display:flex; align-items:flex-start; gap:10px;
+            padding:11px 6px; border-bottom:1px solid rgba(51,255,0,.07);
+            cursor:none; transition:background .2s, padding-left .2s;
+            position:relative;
+        }
+        .svc-row:last-child { border-bottom:none; }
+        .svc-row:hover { background:rgba(51,255,0,.04); padding-left:10px; }
+        .svc-row:hover .svc-name { color:var(--green); text-shadow:0 0 10px var(--green); }
+
+        .svc-num { font-family:var(--f-mono); font-size:.55rem; color:var(--green-dim); min-width:22px; padding-top:3px; }
+
+        .svc-dot { width:7px; height:7px; min-width:7px; border-radius:50%; margin-top:5px; animation:blink 2s infinite; box-shadow:0 0 6px currentColor; }
+        .svc-dot.cyan   { background:var(--cyan);   color:var(--cyan); }
+        .svc-dot.amber  { background:var(--amber);  color:var(--amber); }
+        .svc-dot.green  { background:var(--green);  color:var(--green); }
+        .svc-dot.red    { background:var(--red);    color:var(--red); }
+        .svc-dot.purple { background:var(--purple); color:var(--purple); }
+
+        .svc-content { flex:1; min-width:0; }
+        .svc-name {
+            font-family:var(--f-hud); font-size:.68rem; font-weight:700;
+            color:#cffcdf; text-transform:uppercase; letter-spacing:.5px;
+            transition:all .2s; margin-bottom:3px;
+        }
+        .svc-desc { font-family:var(--f-mono); font-size:.58rem; color:rgba(51,255,0,.45); line-height:1.5; }
+
+        .svc-tag {
+            font-family:var(--f-term); font-size:.82rem; letter-spacing:.5px;
+            padding:1px 5px; white-space:nowrap; align-self:flex-start; margin-top:2px;
+        }
+        .tag-online  { color:var(--green);  border:1px solid rgba(51,255,0,.3); }
+        .tag-running { color:var(--cyan);   border:1px solid rgba(0,245,255,.3); }
+        .tag-active  { color:var(--amber);  border:1px solid rgba(255,176,0,.3); }
+        .tag-live    { color:var(--red);    border:1px solid rgba(255,68,68,.3); }
+
+        /* ── TERM DIVIDER ── */
+        .term-div {
+            height:1px; background:rgba(51,255,0,.1);
+            margin:14px 0; position:relative; overflow:hidden;
+        }
+        .term-div::after {
+            content:''; position:absolute; left:0; top:0; height:100%; width:25%;
+            background:linear-gradient(90deg, var(--green), transparent);
+            animation:div-sweep 3s ease-in-out infinite;
+        }
+        @keyframes div-sweep { 0%{left:0;width:25%} 50%{left:75%;width:25%} 100%{left:0;width:25%} }
+
+        /* ── FORM (terminal style) ── */
+        .t-field { margin-bottom:14px; }
+        .t-lbl {
+            display:block; font-family:var(--f-mono); font-size:.55rem;
+            color:var(--green-dim); text-transform:uppercase; letter-spacing:2px; margin-bottom:4px;
+        }
+        .t-lbl::before { content:'// '; color:rgba(51,255,0,.2); }
+        .t-wrap {
+            display:flex; align-items:flex-start;
+            border:1px solid rgba(51,255,0,.18); background:rgba(0,0,0,.55);
+            transition:all .25s;
+        }
+        .t-wrap:focus-within {
+            border-color:var(--green);
+            box-shadow:0 0 12px rgba(51,255,0,.18), inset 0 0 10px rgba(51,255,0,.04);
+        }
+        .t-prompt { padding:12px 6px 12px 12px; color:var(--amber); font-size:1.2rem; user-select:none; flex-shrink:0; }
+        .t-input, .t-area {
+            flex:1; padding:12px 12px 12px 2px;
+            background:transparent; border:none; outline:none;
+            color:var(--green); font-family:var(--f-term); font-size:1.1rem;
+            letter-spacing:.5px; min-width:0;
+        }
+        .t-input::placeholder, .t-area::placeholder {
+            color:rgba(51,255,0,.2); font-size:.95rem;
+        }
+        .t-area { resize:none; display:block; width:100%; }
+
+        /* ── BUTTONS ── */
+        .r-btn {
+            display:block; width:100%; padding:15px;
+            background:transparent; border:1px solid var(--green);
+            color:var(--green); font-family:var(--f-term); font-size:1.2rem;
+            letter-spacing:3px; text-transform:uppercase;
+            cursor:none; position:relative; overflow:hidden;
+            transition:color .25s, box-shadow .25s; text-align:center;
+            text-decoration:none; margin-bottom:8px;
+        }
+        .r-btn::before {
+            content:''; position:absolute; inset:0;
+            background:var(--green); transform:translateX(-101%);
+            transition:transform .3s ease; z-index:0;
+        }
+        .r-btn:hover::before { transform:translateX(0); }
+        .r-btn:hover { color:var(--bg); box-shadow:0 0 20px rgba(51,255,0,.35); }
+        .r-btn:active { transform:scale(.98); }
+        .r-btn-inner { position:relative; z-index:1; }
+        .r-btn .pfx { color:var(--amber); font-size:1rem; }
+        .r-btn:hover .pfx { color:var(--bg); }
+
+        .r-btn-amber { border-color:var(--amber); color:var(--amber); }
+        .r-btn-amber::before { background:var(--amber); }
+        .r-btn-amber:hover { box-shadow:0 0 20px rgba(255,176,0,.35); }
+
+        /* ── SOCIAL GRID ── */
+        .social-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+        .s-cmd {
+            display:flex; flex-direction:column; padding:9px 11px;
+            border:1px solid rgba(51,255,0,.13); background:rgba(0,0,0,.45);
+            text-decoration:none; color:var(--green); cursor:none;
+            position:relative; overflow:hidden; transition:all .22s;
+        }
+        .s-cmd-prefix { font-family:var(--f-mono); font-size:.5rem; color:var(--amber); }
+        .s-cmd-name { font-family:var(--f-term); font-size:.95rem; color:#cffcdf; margin-top:2px; }
+        .s-cmd:hover { border-color:var(--green); background:rgba(51,255,0,.07); box-shadow:0 0 10px rgba(51,255,0,.1); }
+        .s-cmd:hover .s-cmd-name { color:var(--green); text-shadow:0 0 8px var(--green); }
+        .s-exec {
+            position:absolute; bottom:4px; right:6px;
+            font-family:var(--f-mono); font-size:.45rem; color:var(--cyan);
+            opacity:0; transition:opacity .2s;
+        }
+        .s-cmd:hover .s-exec { opacity:1; }
+
+        /* lang toggle in card */
+        .lang-toggle-wrap { text-align:center; margin-top:18px; }
+
+        /* ── FOOTER ── */
+        footer {
+            position:relative; z-index:10; padding:28px;
+            text-align:center; border-top:1px solid rgba(51,255,0,.1);
+            font-family:var(--f-mono); font-size:.56rem;
+            color:var(--green-dim); letter-spacing:2px;
+        }
+        footer::before { content:'> '; color:var(--amber); }
+
+        /* ── LANG ── */
+        html[lang="en"] .lang-el { display:none !important; }
+        html[lang="el"] .lang-en { display:none !important; }
+    </style>
+</head>
+<body>
+
+<!-- CUSTOM CURSOR -->
+<div id="mk-cursor"></div>
+<div id="mk-cursor-ring"></div>
+
+<!-- MATRIX CANVAS -->
+<canvas id="bg-canvas"></canvas>
+
+<!-- CRT -->
+<div class="crt-scanlines"></div>
+<div class="crt-vignette"></div>
+<div class="crt-sweep"></div>
+
+<!-- BOOT OVERLAY -->
+<div id="boot-overlay">
+    <div id="boot-lines"></div>
+    <div class="boot-progress-wrap"><div class="boot-bar" id="boot-bar"></div></div>
+    <div class="boot-pct" id="boot-pct">0%</div>
+</div>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-seg">
+        <span class="nav-logo">MK<span>.</span></span>
+    </div>
+    <div class="nav-seg">
+        <span class="nav-dot"></span>
+        <span class="nav-status-txt">SYSTEM ONLINE</span>
+    </div>
+    <div class="nav-seg" style="display:none;">
+        <span class="nav-clock" id="nav-clock">00:00:00</span>
+    </div>
+    <div class="nav-right">
+        <button class="lang-pill" onclick="toggleLang()">
+            <span class="lang-el">EN</span>
+            <span class="lang-en">GR</span>
+        </button>
+    </div>
+</nav>
+
+<!-- PAGE -->
+<div class="page">
+
+    <!-- HERO -->
+    <section id="hero">
+        <div class="hero-photo-wrap">
+            <div class="orbit-ring2"></div>
+            <div class="orbit-ring"></div>
+            <img src="1305.png" alt="Michail" class="hero-photo">
+            <div class="photo-overlay"></div>
+        </div>
+        <div class="hero-id">// ID: MK-2026 // STATUS: ACTIVE // UPTIME: 99.9% //</div>
+        <h1 class="hero-name">
+            <span class="glitch" data-g="MICHAIL">MICHAIL</span><br>
+            <span class="glitch" data-g="KONSTANTOPOULOS" style="font-size:.68em; letter-spacing:1px;">KONSTANTOPOULOS</span>
+        </h1>
+        <div class="hero-tagline">
+            <span id="typed-tag"></span><span class="blink-cur"></span>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-cell">
+                <span class="stat-val" id="s-exp">00</span>
+                <span class="stat-label">YRS EXP</span>
+            </div>
+            <div class="stat-cell">
+                <span class="stat-val" id="s-proj">000</span>
+                <span class="stat-label">PROJECTS</span>
+            </div>
+            <div class="stat-cell">
+                <span class="stat-val" id="s-cli">000</span>
+                <span class="stat-label">CLIENTS</span>
+            </div>
+        </div>
+    </section>
+
+    <main class="section-inner">
+
+        <!-- SERVICES -->
+        <div class="term-win">
+            <div class="term-bar">
+                <span class="tb tb-x"></span>
+                <span class="tb tb-m"></span>
+                <span class="tb tb-f"></span>
+                <span class="term-title-text">
+                    <span class="lang-el">ΥΠΗΡΕΣΙΕΣ</span>
+                    <span class="lang-en">SERVICES</span>
+                    <em>.EXE</em>
+                </span>
+                <span class="term-bar-dot"></span>
+            </div>
+            <div class="term-body">
+                <div class="svc-row">
+                    <span class="svc-num">01.</span>
+                    <span class="svc-dot cyan"></span>
+                    <div class="svc-content">
+                        <div class="svc-name">Cloud Infrastructure</div>
+                        <div class="svc-desc">
+                            <span class="lang-el">Σχεδιασμός και υλοποίηση κλιμακώσιμων υποδομών σε AWS & GCP.</span>
+                            <span class="lang-en">Scalable infrastructure design and deployment on AWS & GCP.</span>
+                        </div>
+                    </div>
+                    <span class="svc-tag tag-online">ONLINE</span>
+                </div>
+                <div class="svc-row">
+                    <span class="svc-num">02.</span>
+                    <span class="svc-dot purple"></span>
+                    <div class="svc-content">
+                        <div class="svc-name">AI Automations</div>
+                        <div class="svc-desc">
+                            <span class="lang-el">Αυτοματοποίηση επιχειρηματικών διαδικασιών με AI Agents & LLM integrations.</span>
+                            <span class="lang-en">Business process automation with AI Agents & LLM integrations.</span>
+                        </div>
+                    </div>
+                    <span class="svc-tag tag-running">RUN</span>
+                </div>
+                <div class="svc-row">
+                    <span class="svc-num">03.</span>
+                    <span class="svc-dot amber"></span>
+                    <div class="svc-content">
+                        <div class="svc-name">Full-Stack Engineering</div>
+                        <div class="svc-desc">
+                            <span class="lang-el">Custom Web & Mobile apps με εστίαση στο performance.</span>
+                            <span class="lang-en">Custom Web & Mobile apps focused on performance.</span>
+                        </div>
+                    </div>
+                    <span class="svc-tag tag-active">ACTIVE</span>
+                </div>
+                <div class="svc-row">
+                    <span class="svc-num">04.</span>
+                    <span class="svc-dot red"></span>
+                    <div class="svc-content">
+                        <div class="svc-name">Digital Advertising</div>
+                        <div class="svc-desc">
+                            <span class="lang-el">Στρατηγική και καμπάνιες σε Google, TikTok, Meta, Pinterest & X.</span>
+                            <span class="lang-en">Strategy & campaigns on Google, TikTok, Meta, Pinterest & X.</span>
+                        </div>
+                    </div>
+                    <span class="svc-tag tag-live">LIVE</span>
+                </div>
+                <div class="svc-row">
+                    <span class="svc-num">05.</span>
+                    <span class="svc-dot green"></span>
+                    <div class="svc-content">
+                        <div class="svc-name">Digital Transformation</div>
+                        <div class="svc-desc">
+                            <span class="lang-el">Συμβουλευτική ψηφιακής μετάβασης και αρχιτεκτονική συστημάτων.</span>
+                            <span class="lang-en">Digital transformation consulting and system architecture.</span>
+                        </div>
+                    </div>
+                    <span class="svc-tag tag-online">READY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACT -->
+        <div class="term-win">
+            <div class="term-bar">
+                <span class="tb tb-x"></span>
+                <span class="tb tb-m"></span>
+                <span class="tb tb-f"></span>
+                <span class="term-title-text">
+                    <span class="lang-el">ΕΠΙΚΟΙΝΩΝΙΑ</span>
+                    <span class="lang-en">CONTACT</span>
+                    <em>.SH</em>
+                </span>
+                <span class="term-bar-dot"></span>
+            </div>
+            <div class="term-body">
+                <form action="https://formsubmit.co/mrkonstantopoulosmichail@gmail.com" method="POST">
+                    <input type="hidden" name="_captcha" value="false">
+
+                    <div class="t-field">
+                        <label class="t-lbl lang-el">Ονοματεπώνυμο</label>
+                        <label class="t-lbl lang-en">Full Name</label>
+                        <div class="t-wrap">
+                            <span class="t-prompt">></span>
+                            <input type="text" name="name" class="t-input" placeholder="enter_name..." required>
+                        </div>
+                    </div>
+                    <div class="t-field">
+                        <label class="t-lbl lang-el">Τηλέφωνο</label>
+                        <label class="t-lbl lang-en">Phone Number</label>
+                        <div class="t-wrap">
+                            <span class="t-prompt">></span>
+                            <input type="tel" name="phone" class="t-input" placeholder="enter_phone..." required>
+                        </div>
+                    </div>
+                    <div class="t-field">
+                        <label class="t-lbl">Email Address</label>
+                        <div class="t-wrap">
+                            <span class="t-prompt">></span>
+                            <input type="email" name="email" class="t-input" placeholder="user@domain.com" required>
+                        </div>
+                    </div>
+                    <div class="t-field">
+                        <label class="t-lbl lang-el">Μήνυμα</label>
+                        <label class="t-lbl lang-en">Message</label>
+                        <div class="t-wrap" style="align-items:flex-start;">
+                            <span class="t-prompt" style="padding-top:14px;">></span>
+                            <textarea name="message" class="t-area" rows="4" placeholder="input_message..." required></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="r-btn" style="margin-top:4px; background:rgba(51,255,0,.04);">
+                        <span class="r-btn-inner">
+                            <span class="pfx">>> </span>
+                            <span class="lang-el">ΑΠΟΣΤΟΛΗ ΜΗΝΥΜΑΤΟΣ</span>
+                            <span class="lang-en">TRANSMIT MESSAGE</span>
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SOCIALS -->
+        <div class="term-win">
+            <div class="term-bar">
+                <span class="tb tb-x"></span>
+                <span class="tb tb-m"></span>
+                <span class="tb tb-f"></span>
+                <span class="term-title-text">
+                    <span class="lang-el">ΣΥΝΔΕΣΜΟΙ</span>
+                    <span class="lang-en">LINKS</span>
+                    <em>.NET</em>
+                </span>
+                <span class="term-bar-dot"></span>
+            </div>
+            <div class="term-body">
+                <a href="tel:+306972457066" class="r-btn r-btn-amber">
+                    <span class="r-btn-inner">
+                        <span class="pfx">⬡ </span>
+                        <span class="lang-el">ΑΜΕΣΗ ΚΛΗΣΗ</span>
+                        <span class="lang-en">DIRECT CALL</span>
+                    </span>
+                </a>
+                <div class="term-div"></div>
+                <div class="social-grid">
+                    <a href="viber://chat?number=%2B306972457066" class="s-cmd">
+                        <span class="s-cmd-prefix">$ connect</span>
+                        <span class="s-cmd-name">VIBER</span>
+                        <span class="s-exec">EXEC...</span>
+                    </a>
+                    <a href="https://t.me/mrmichailkonstantopoulos" class="s-cmd">
+                        <span class="s-cmd-prefix">$ open</span>
+                        <span class="s-cmd-name">TELEGRAM</span>
+                        <span class="s-exec">EXEC...</span>
+                    </a>
+                    <a href="https://wa.me/306972457066" class="s-cmd">
+                        <span class="s-cmd-prefix">$ send</span>
+                        <span class="s-cmd-name">WHATSAPP</span>
+                        <span class="s-exec">EXEC...</span>
+                    </a>
+                    <a href="https://m.me/mrmichailkonstantopoulos" class="s-cmd">
+                        <span class="s-cmd-prefix">$ open</span>
+                        <span class="s-cmd-name">MESSENGER</span>
+                        <span class="s-exec">EXEC...</span>
+                    </a>
+                    <a href="https://www.linkedin.com/in/michail-konstantopoulos" class="s-cmd">
+                        <span class="s-cmd-prefix">$ view</span>
+                        <span class="s-cmd-name">LINKEDIN</span>
+                        <span class="s-exec">EXEC...</span>
+                    </a>
+                    <a href="https://www.instagram.com/mrmichailkonstantopoulos" class="s-cmd">
+                        <span class="s-cmd-prefix">$ follow</span>
+                        <span class="s-cmd-name">INSTAGRAM</span>
+                        <span class="s-exec">EXEC...</span>
+                    </a>
+                    <a href="https://www.facebook.com/mrmichailkonstantopoulos" class="s-cmd">
+                        <span class="s-cmd-prefix">$ like</span>
+                        <span class="s-cmd-name">FACEBOOK</span>
+                        <span class="s-exec">EXEC...</span>
+                    </a>
+                    <a href="mailto:mrkonstantopoulosmichail@gmail.com" class="s-cmd">
+                        <span class="s-cmd-prefix">$ mail</span>
+                        <span class="s-cmd-name">EMAIL</span>
+                        <span class="s-exec">EXEC...</span>
+                    </a>
+                </div>
+                <div class="lang-toggle-wrap">
+                    <button class="lang-pill" onclick="toggleLang()" style="padding:8px 20px; font-size:.6rem;">
+                        <span class="lang-el">SWITCH TO ENGLISH</span>
+                        <span class="lang-en">ΑΛΛΑΓΗ ΣΕ ΕΛΛΗΝΙΚΑ</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <span class="lang-el">© 2026 MICHAIL KONSTANTOPOULOS // ΠΑΝΤΑ ΤΑ ΔΙΚΑΙΩΜΑΤΑ ΔΙΑΤΗΡΟΥΝΤΑΙ</span>
+        <span class="lang-en">© 2026 MICHAIL KONSTANTOPOULOS // ALL RIGHTS RESERVED</span>
+    </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CURSOR
+═══════════════════════════════════════════ */
+const cur = document.getElementById('mk-cursor');
+const ring = document.getElementById('mk-cursor-ring');
+let mx=0, my=0, rx=0, ry=0;
+
+document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cur.style.left  = (mx - 7) + 'px';
+    cur.style.top   = (my - 7) + 'px';
+});
+(function animRing(){
+    rx += (mx - rx) * 0.25;
+    ry += (my - ry) * 0.25;
+    ring.style.left = (rx - 14) + 'px';
+    ring.style.top  = (ry - 14) + 'px';
+    requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('a, button, .svc-row, .tb').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+        cur.style.background = '#FFB000';
+        cur.style.transform = 'scale(1.8)';
+        ring.style.transform = 'scale(1.5)';
+        ring.style.borderColor = 'rgba(255,176,0,.5)';
+    });
+    el.addEventListener('mouseleave', () => {
+        cur.style.background = '#33FF00';
+        cur.style.transform = 'scale(1)';
+        ring.style.transform = 'scale(1)';
+        ring.style.borderColor = 'rgba(51,255,0,.4)';
+    });
+});
+
+/* ═══════════════════════════════════════════
+   MATRIX CANVAS
+═══════════════════════════════════════════ */
+const cv = document.getElementById('bg-canvas');
+const cx = cv.getContext('2d');
+
+function resizeCv(){
+    cv.width  = window.innerWidth;
+    cv.height = window.innerHeight;
+}
+resizeCv();
+window.addEventListener('resize', resizeCv);
+
+const chars = '01アイウエカキクABCDEF0123456789∑∆√∞≠≈';
+const fs = 13;
+let drops;
+function initDrops(){
+    const cols = Math.floor(cv.width / fs);
+    drops = Array.from({length: cols}, () => Math.random() * -120);
+}
+initDrops();
+window.addEventListener('resize', initDrops);
+
+function drawMatrix(){
+    cx.fillStyle = 'rgba(5,9,5,0.055)';
+    cx.fillRect(0, 0, cv.width, cv.height);
+    cx.font = fs + 'px VT323, monospace';
+    for(let i=0; i<drops.length; i++){
+        const ch = chars[Math.floor(Math.random()*chars.length)];
+        const bright = Math.random() > 0.92;
+        cx.fillStyle = bright ? 'rgba(51,255,0,1)' : 'rgba(51,255,0,0.28)';
+        cx.fillText(ch, i*fs, drops[i]*fs);
+        if(drops[i]*fs > cv.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+    }
+}
+setInterval(drawMatrix, 48);
+
+/* ═══════════════════════════════════════════
+   NAV CLOCK
+═══════════════════════════════════════════ */
+function tick(){
+    const n = new Date();
+    document.getElementById('nav-clock').textContent =
+        [n.getHours(), n.getMinutes(), n.getSeconds()]
+        .map(v => String(v).padStart(2,'0')).join(':');
+}
+setInterval(tick, 1000); tick();
+
+/* ═══════════════════════════════════════════
+   BOOT SEQUENCE
+═══════════════════════════════════════════ */
+const BOOT_LINES = [
+    {t:'MK DIGITAL SYSTEMS — v2.0.26',          c:'c-amber'},
+    {t:'Copyright © 2026 Michail Konstantopoulos', c:''},
+    {t:'─'.repeat(38),                            c:'c-dim'},
+    {t:'Initializing kernel modules ...',          c:''},
+    {t:'Loading cloud infrastructure ...... [OK]', c:''},
+    {t:'Mounting neural network interface .. [OK]', c:''},
+    {t:'Starting AI automation daemons ..... [OK]', c:''},
+    {t:'Digital advertising engine ......... [LIVE]',c:'c-cyan'},
+    {t:'Full-stack compiler ready ........... [OK]', c:''},
+    {t:'Secure connection established ....... [OK]', c:''},
+    {t:'─'.repeat(38),                             c:'c-dim'},
+    {t:'ALL SYSTEMS NOMINAL. WELCOME, USER.',       c:'c-amber'},
+];
+
+const bootLines  = document.getElementById('boot-lines');
+const bootOver   = document.getElementById('boot-overlay');
+const bootBar    = document.getElementById('boot-bar');
+const bootPct    = document.getElementById('boot-pct');
+let lineIdx = 0;
+
+function nextLine(){
+    if(lineIdx >= BOOT_LINES.length){
+        bootBar.style.width = '100%';
+        bootPct.textContent = '100%';
+        setTimeout(() => {
+            bootOver.classList.add('out');
+            setTimeout(() => bootOver.remove(), 850);
+            startAfterBoot();
+        }, 700);
+        return;
+    }
+    const L = BOOT_LINES[lineIdx++];
+    const el = document.createElement('div');
+    el.className = 'boot-line vis' + (L.c ? ' '+L.c : '');
+    el.textContent = L.t.startsWith('─') ? L.t : '> ' + L.t;
+    bootLines.appendChild(el);
+    const pct = Math.floor((lineIdx / BOOT_LINES.length) * 100);
+    bootBar.style.width = pct + '%';
+    bootPct.textContent = pct + '%';
+    setTimeout(nextLine, 110 + Math.random()*70);
+}
+nextLine();
+
+/* ═══════════════════════════════════════════
+   POST-BOOT ANIMATIONS
+═══════════════════════════════════════════ */
+const TAGS = { el:'ΨΗΦΙΑΚΟΣ ΑΡΧΙΤΕΚΤΟΝΑΣ', en:'DIGITAL ARCHITECT' };
+let typeTO;
+function typeTag(lang){
+    const str = TAGS[lang];
+    const el = document.getElementById('typed-tag');
+    el.textContent = '';
+    clearTimeout(typeTO);
+    let i = 0;
+    (function tc(){ if(i<str.length){ el.textContent+=str[i++]; typeTO=setTimeout(tc,75); } })();
+}
+
+function countUp(id, target, dur, pad){
+    const el = document.getElementById(id);
+    let v = 0;
+    const step = target / (dur/45);
+    const t = setInterval(() => {
+        v = Math.min(v+step, target);
+        el.textContent = String(Math.floor(v)).padStart(pad,'0');
+        if(v>=target) clearInterval(t);
+    }, 45);
+}
+
+function startAfterBoot(){
+    typeTag('el');
+    setTimeout(() => { countUp('s-exp',  8, 1400, 2); }, 200);
+    setTimeout(() => { countUp('s-proj', 150, 1800, 3); }, 400);
+    setTimeout(() => { countUp('s-cli',  80, 1600, 3); }, 600);
+}
+
+/* ═══════════════════════════════════════════
+   LANG TOGGLE
+═══════════════════════════════════════════ */
+function toggleLang(){
+    const html = document.documentElement;
+    const cur = html.getAttribute('lang');
+    const next = cur === 'el' ? 'en' : 'el';
+    html.setAttribute('lang', next);
+    document.title = next === 'en'
+        ? 'Michail Konstantopoulos — Digital Architect'
+        : 'Michail Konstantopoulos — Ψηφιακός Αρχιτέκτονας';
+    typeTag(next);
+}
+
+/* ═══════════════════════════════════════════
+   PIXEL BURST ON CLICK
+═══════════════════════════════════════════ */
+document.querySelectorAll('.r-btn, .s-cmd, .lang-pill').forEach(btn => {
+    btn.addEventListener('click', e => {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;
+            width:0;height:0;pointer-events:none;z-index:99995;`;
+        for(let i=0;i<10;i++){
+            const px = document.createElement('div');
+            const ang = (i/10)*Math.PI*2;
+            const d = 28 + Math.random()*22;
+            const sz = 3 + Math.random()*3;
+            const color = ['#33FF00','#FFB000','#00F5FF'][Math.floor(Math.random()*3)];
+            px.style.cssText = `position:absolute;width:${sz}px;height:${sz}px;
+                background:${color};left:0;top:0;transition:all .45s ease-out;box-shadow:0 0 4px ${color};`;
+            wrap.appendChild(px);
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    px.style.transform = `translate(${Math.cos(ang)*d}px,${Math.sin(ang)*d}px)`;
+                    px.style.opacity = '0';
+                });
+            });
+        }
+        document.body.appendChild(wrap);
+        setTimeout(() => wrap.remove(), 500);
+    });
+});
+
+/* ═══════════════════════════════════════════
+   GLITCH RANDOM TRIGGER on name
+═══════════════════════════════════════════ */
+setInterval(() => {
+    document.querySelectorAll('.glitch').forEach(el => {
+        if(Math.random() < 0.12){
+            el.style.transform = `translate(${(Math.random()-0.5)*4}px,0)`;
+            setTimeout(() => el.style.transform = '', 80);
+        }
+    });
+}, 1200);
+
+/* ═══════════════════════════════════════════
+   SERVICE ROW HOVER SOUND SIMULATION (visual)
+═══════════════════════════════════════════ */
+document.querySelectorAll('.svc-row').forEach(row => {
+    row.addEventListener('mouseenter', () => {
+        const dot = row.querySelector('.svc-dot');
+        if(dot){ dot.style.animationDuration = '.3s'; }
+    });
+    row.addEventListener('mouseleave', () => {
+        const dot = row.querySelector('.svc-dot');
+        if(dot){ dot.style.animationDuration = '2s'; }
+    });
+});
+</script>
+</body>
+</html>
