@@ -198,22 +198,20 @@
         .social-link { padding: 12px 8px; border: 1px solid rgba(191, 0, 255, 0.25); text-align: center; text-decoration: none; color: var(--silver); font-family: var(--f-display); font-size: 0.6rem; border-radius: 8px; text-transform: uppercase; letter-spacing: 1px; background: rgba(191, 0, 255, 0.04); transition: all 0.3s; }
         .social-link:hover { border-color: rgba(0, 245, 255, 0.5); color: var(--neon-cyan); text-shadow: 0 0 8px var(--neon-cyan); box-shadow: 0 0 16px rgba(0, 245, 255, 0.15); background: rgba(0, 245, 255, 0.06); }
 
-        /* ─── LANG TOGGLE BOTTOM ─── */
         .lang-toggle-wrapper { margin-top: 22px; text-align: center; }
         .lang-toggle-btn { padding: 14px 32px; background: transparent; border: 1px solid rgba(0, 245, 255, 0.4); color: var(--neon-cyan); font-family: var(--f-display); font-size: 0.7rem; text-transform: uppercase; border-radius: 30px; cursor: pointer; font-weight: bold; letter-spacing: 1.5px; text-shadow: 0 0 10px var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 245, 255, 0.15), inset 0 0 20px rgba(0, 245, 255, 0.03); transition: all 0.3s; }
         .lang-toggle-btn:hover { background: rgba(0, 245, 255, 0.1); box-shadow: 0 0 35px rgba(0, 245, 255, 0.35); }
 
         .neon-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent); margin: 4px 0 20px; opacity: 0.3; }
 
-        /* ─── FOOTER ─── */
         footer { padding: 40px 20px; font-size: 0.55rem; color: #444; font-family: var(--f-display); text-transform: uppercase; text-align: center; letter-spacing: 2px; border-top: 1px solid rgba(0, 245, 255, 0.06); }
 
-        /* ─── LANG LOGIC ─── */
+        /* ─── LANGUAGE LOGIC ─── */
         html[lang="en"] .lang-el { display: none !important; }
         html[lang="el"] .lang-en { display: none !important; }
     </style>
 </head>
-<body class="lang-container">
+<body>
 
     <nav>
         <div class="nav-mk">MK<span>.</span></div>
@@ -351,4 +349,8 @@
             <div class="lang-toggle-wrapper">
                 <button class="lang-toggle-btn" onclick="toggleLang()">
                     <span class="lang-el">SWITCH TO ENGLISH / EN</span>
-                    <span class="lang-en">ΑΛ
+                    <span class="lang-en">ΑΛΛΑΓΗ ΣΕ ΕΛΛΗΝΙΚΑ / GR</span>
+                </button>
+            </div>
+        </div>
+        
